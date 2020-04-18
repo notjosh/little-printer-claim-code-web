@@ -85,13 +85,47 @@ export default class Claimer extends Component<ClaimerProps, ClaimerState> {
     return Math.floor(Math.random() * 0xffffffffff);
   }
 
-  render(props: ClaimerProps, state: ClaimerState) {
-    const lines = [
-      `     address: ${state.address}`,
-      `      secret: ${state.secret}`,
-      `  claim code: ${state.claimCode}`,
-    ];
+  copy(): void {
+    const container = document.querySelector('#lines') as HTMLTextAreaElement;
+    if (container != null) {
+      container.select();
+      document.execCommand('copy');
+    }
+  }
 
+  download = (): void => {
+    console.log(this);
+    // via: https://blog.logrocket.com/programmatic-file-downloads-in-the-browser-9a5186298d5c/
+    const blob = new Blob([this.lines.join('\n')], { type: 'text/plain' });
+    const filename = `${this.state.address}.printer`;
+
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename || 'download';
+
+    const clickHandler = () => {
+      setTimeout(() => {
+        URL.revokeObjectURL(url);
+        a.removeEventListener('click', clickHandler);
+        console.log('gone');
+      }, 150);
+    };
+
+    a.addEventListener('click', clickHandler, false);
+    a.click();
+  };
+
+  private get lines(): string[] {
+    return [
+      `     address: ${this.state.address}`,
+      `      secret: ${this.state.secret}`,
+      `  claim code: ${this.state.claimCode}`,
+    ];
+  }
+
+  render(props: ClaimerProps, state: ClaimerState) {
     return (
       <div>
         <h1>lil printer client codes, here 4 u</h1>
@@ -131,8 +165,18 @@ export default class Claimer extends Component<ClaimerProps, ClaimerState> {
             <p>client code: {state.claimCode}</p>
 
             <p>.printer file output:</p>
-            <div style="white-space: pre-wrap; font-family: monospace;">
-              {lines.join('\n')}
+            <textarea
+              id="lines"
+              style="white-space: pre-wrap; font-family: monospace;"
+              rows={this.lines.length + 1}
+              cols={50}
+              readOnly
+            >
+              {this.lines.join('\n')}
+            </textarea>
+            <div>
+              <button onClick={this.copy}>copy</button>
+              <button onClick={this.download}>download</button>
             </div>
           </div>
         )}
