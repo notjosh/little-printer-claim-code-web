@@ -10,10 +10,11 @@
   "devDependencies": {
     "parcel": "^2.0.0-alpha.3.2",
     "parcel-bundler": "^1.12.4",
-    "typescript": "^3.8.3"
+    "typescript": "^3.9.2"
   },
   "dependencies": {
-    "little-printer-claim-code": "^0.0.2",
-    "preact": "^10.4.0"
+    "big-integer": "^1.6.48",
+    "little-printer-claim-code": "^1.0.0",
+    "preact": "^10.4.1"
   }
 }
