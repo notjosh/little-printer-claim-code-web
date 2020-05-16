@@ -1,6 +1,10 @@
 import { h, Component } from 'preact';
+import bigInt from 'big-integer';
 
-import { encode } from 'little-printer-claim-code';
+import {
+  encode,
+  hardwareXorFromDeviceAddress,
+} from 'little-printer-claim-code';
 
 export default class Claimer extends Component<ClaimerProps, ClaimerState> {
   addressHandler: (event: h.JSX.TargetedEvent<HTMLInputElement, Event>) => void;
@@ -63,10 +67,9 @@ export default class Claimer extends Component<ClaimerProps, ClaimerState> {
       );
     }
 
-    const claimCode =
-      notices.length == 0
-        ? encode(parseInt(address, 16) & 0xffffff, secret)
-        : '';
+    const xor = hardwareXorFromDeviceAddress(bigInt(address, 16));
+
+    const claimCode = notices.length == 0 ? encode(xor, bigInt(secret)) : '';
 
     return {
       claimCode,
@@ -94,7 +97,6 @@ export default class Claimer extends Component<ClaimerProps, ClaimerState> {
   }
 
   download = (): void => {
-    console.log(this);
     // via: https://blog.logrocket.com/programmatic-file-downloads-in-the-browser-9a5186298d5c/
     const blob = new Blob([this.lines.join('\n')], { type: 'text/plain' });
     const filename = `${this.state.address}.printer`;
@@ -109,7 +111,6 @@ export default class Claimer extends Component<ClaimerProps, ClaimerState> {
       setTimeout(() => {
         URL.revokeObjectURL(url);
         a.removeEventListener('click', clickHandler);
-        console.log('gone');
       }, 150);
     };
 
@@ -120,7 +121,10 @@ export default class Claimer extends Component<ClaimerProps, ClaimerState> {
   private get lines(): string[] {
     return [
       `     address: ${this.state.address}`,
-      `      secret: ${this.state.secret}`,
+      `      secret: ${this.state.secret.toString(16)}`,
+      `         xor: ${hardwareXorFromDeviceAddress(
+        bigInt(this.state.address, 16)
+      )}`,
       `  claim code: ${this.state.claimCode}`,
     ];
   }
